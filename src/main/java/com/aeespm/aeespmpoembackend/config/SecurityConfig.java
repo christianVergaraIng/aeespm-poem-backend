@@ -4,6 +4,7 @@ import com.aeespm.aeespmpoembackend.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -32,18 +33,51 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    @Order(1)
+    public SecurityFilterChain publicGetApiFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/api/poems", "/api/poems/**")
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/api/poems", "/api/poems/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/poems").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/poems/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/poems/**").authenticated()
+                        .anyRequest().authenticated()
+                );
+        
+        // Only add JWT filter for authenticated routes
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
+    public SecurityFilterChain authApiFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/api/auth/**")
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()
+                );
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(3)
+    public SecurityFilterChain defaultFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/poems/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/poems").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/poems/**").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/poems/**").authenticated()
                         .requestMatchers("/index.html", "/", "/login.html", "/dashboard.html", "/static/**", "/css/**", "/js/**").permitAll()
                         .anyRequest().authenticated()
                 )
