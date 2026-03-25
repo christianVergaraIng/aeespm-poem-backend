@@ -52,9 +52,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String method = request.getMethod();
         
         // Don't filter public endpoints
-        return path.startsWith("/api/auth/") ||
+        return path.startsWith("/api/auth") ||
                (method.equals("GET") && path.startsWith("/api/poems")) ||
-               (method.equals("POST") && path.equals("/api/poems")) ||
+               (method.equals("POST") && (path.equals("/api/poems") || path.equals("/api/poems/"))) ||
                method.equals("OPTIONS");
     }
 }

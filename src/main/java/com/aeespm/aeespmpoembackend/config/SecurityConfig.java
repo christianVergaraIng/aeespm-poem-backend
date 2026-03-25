@@ -8,6 +8,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,55 +34,31 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Order(1)
-    public SecurityFilterChain publicGetApiFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/api/poems", "/api/poems/**")
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Public routes - no authentication required
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/poems", "/api/poems/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/poems").permitAll()
+                        
+                        // Protected routes - authentication required
                         .requestMatchers(HttpMethod.PUT, "/api/poems/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/poems/**").authenticated()
+                        
+                        // Static resources
+                        .requestMatchers("/", "/index.html", "/login.html", "/dashboard.html", "/static/**", "/css/**", "/js/**").permitAll()
+                        
+                        // Everything else requires authentication
                         .anyRequest().authenticated()
                 );
         
-        // Only add JWT filter for authenticated routes
+        // Add JWT filter AFTER authorization rules are set
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
-    }
-
-    @Bean
-    @Order(2)
-    public SecurityFilterChain authApiFilterChain(HttpSecurity http) throws Exception {
-        http
-                .securityMatcher("/api/auth/**")
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
-                );
-
-        return http.build();
-    }
-
-    @Bean
-    @Order(3)
-    public SecurityFilterChain defaultFilterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/index.html", "/", "/login.html", "/dashboard.html", "/static/**", "/css/**", "/js/**").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -90,7 +67,6 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Patrones que cubren cualquier subdominio de Vercel + local
         configuration.setAllowedOriginPatterns(List.of(
                 "https://*.vercel.app",
                 "https://aeespm-poem-backend.onrender.com",
