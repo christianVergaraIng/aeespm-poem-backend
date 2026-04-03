@@ -22,9 +22,22 @@ CREATE TABLE IF NOT EXISTS poems (
     updated_at TIMESTAMP    NOT NULL DEFAULT NOW()
 );
 
+-- Tabla de comentarios
+CREATE TABLE IF NOT EXISTS comments (
+    id         BIGSERIAL    PRIMARY KEY,
+    nickname   VARCHAR(100) NOT NULL,
+    content    TEXT         NOT NULL,
+    poem_id    BIGINT       NOT NULL,
+    created_at TIMESTAMP    NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP    NOT NULL DEFAULT NOW(),
+    CONSTRAINT fk_comment_poem FOREIGN KEY (poem_id) REFERENCES poems(id) ON DELETE CASCADE
+);
+
 -- Índices
 CREATE INDEX IF NOT EXISTS idx_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_created_at ON poems(created_at);
+CREATE INDEX IF NOT EXISTS idx_comment_poem_id ON comments(poem_id);
+CREATE INDEX IF NOT EXISTS idx_comment_created_at ON comments(created_at);
 
 -- Usuario administrador por defecto
 -- Username: admin
@@ -58,5 +71,6 @@ INSERT INTO flyway_schema_history (installed_rank, version, description, type, s
 VALUES 
     (1, '1', 'Initial schema', 'SQL', 'V1__Initial_schema.sql', NULL, 'manual', NOW(), 0, true),
     (2, '2', 'Insert admin user', 'SQL', 'V2__Insert_admin_user.sql', NULL, 'manual', NOW(), 0, true),
-    (3, '3', 'Update admin password', 'SQL', 'V3__Update_admin_password.sql', NULL, 'manual', NOW(), 0, true)
+    (3, '3', 'Update admin password', 'SQL', 'V3__Update_admin_password.sql', NULL, 'manual', NOW(), 0, true),
+    (4, '4', 'Create comments table', 'SQL', 'V4__Create_comments_table.sql', NULL, 'manual', NOW(), 0, true)
 ON CONFLICT (installed_rank) DO NOTHING;

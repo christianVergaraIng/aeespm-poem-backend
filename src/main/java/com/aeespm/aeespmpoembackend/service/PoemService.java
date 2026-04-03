@@ -5,11 +5,11 @@ import com.aeespm.aeespmpoembackend.dto.PoemResponse;
 import com.aeespm.aeespmpoembackend.entity.Poem;
 import com.aeespm.aeespmpoembackend.repository.PoemRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,10 +28,8 @@ public class PoemService {
         return mapToResponse(savedPoem);
     }
 
-    public List<PoemResponse> getAllPoems() {
-        return poemRepository.findAll().stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+    public Page<PoemResponse> getAllPoems(Pageable pageable) {
+        return poemRepository.findAll(pageable).map(this::mapToResponse);
     }
 
     public Optional<PoemResponse> getPoemById(Long id) {

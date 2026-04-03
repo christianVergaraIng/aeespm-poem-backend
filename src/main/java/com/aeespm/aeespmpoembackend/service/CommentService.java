@@ -7,6 +7,8 @@ import com.aeespm.aeespmpoembackend.entity.Poem;
 import com.aeespm.aeespmpoembackend.repository.CommentRepository;
 import com.aeespm.aeespmpoembackend.repository.PoemRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,11 +45,8 @@ public class CommentService {
     }
 
     @Transactional(readOnly = true)
-    public List<CommentResponse> getAllComments() {
-        return commentRepository.findAll()
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+    public Page<CommentResponse> getAllComments(Pageable pageable) {
+        return commentRepository.findAllWithPoem(pageable).map(this::mapToResponse);
     }
 
     @Transactional(readOnly = true)
