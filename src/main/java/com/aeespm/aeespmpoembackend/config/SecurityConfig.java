@@ -46,6 +46,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/poems", "/api/poems/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/poems").permitAll()
                         
+                        // Comments endpoints - public read, authenticated write
+                        .requestMatchers(HttpMethod.GET, "/api/comments", "/api/comments/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/comments").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/comments/**").authenticated()
+                        
                         // Protected routes - authentication required
                         .requestMatchers(HttpMethod.PUT, "/api/poems/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/poems/**").authenticated()
