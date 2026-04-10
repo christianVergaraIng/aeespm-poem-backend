@@ -4,7 +4,6 @@ import com.aeespm.aeespmpoembackend.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -45,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/poems", "/api/poems/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/poems").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/poems/*/audio").permitAll()
                         
                         // Comments endpoints - public read, authenticated write
                         .requestMatchers(HttpMethod.GET, "/api/comments", "/api/comments/**").permitAll()
