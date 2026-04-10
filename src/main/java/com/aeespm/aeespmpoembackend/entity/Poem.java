@@ -2,6 +2,8 @@ package com.aeespm.aeespmpoembackend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -40,9 +42,8 @@ public class Poem {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Lob
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "audio_data")
+    @JdbcTypeCode(SqlTypes.VARBINARY)
+    @Column(name = "audio_data", columnDefinition = "BYTEA")
     private byte[] audioData;
 
     @Column(name = "audio_content_type", length = 100)
