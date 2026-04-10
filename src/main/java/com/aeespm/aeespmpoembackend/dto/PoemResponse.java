@@ -18,6 +18,11 @@ public class PoemResponse {
     private String content;
     private String author;
     private Sede sede;
+    private boolean hasAudio;
+    private String audioContentType;
+    private String audioFilename;
+    private Integer audioOriginalSize;
+    private Integer audioCompressedSize;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

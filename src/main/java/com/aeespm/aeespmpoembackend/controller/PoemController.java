@@ -10,8 +10,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.ContentDisposition;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
 
@@ -62,6 +65,50 @@ public class PoemController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePoem(@PathVariable Long id) {
         if (!poemService.deletePoem(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/{id}/audio", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<PoemResponse> uploadPoemAudio(@PathVariable Long id, @RequestPart("file") MultipartFile file) {
+        try {
+            Optional<PoemResponse> poem = poemService.attachAudio(id, file);
+            if (poem.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(poem.get());
+        } catch (IllegalArgumentException exception) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/{id}/audio")
+    public ResponseEntity<byte[]> getPoemAudio(@PathVariable Long id) {
+        Optional<PoemService.PoemAudioData> audioData = poemService.getPoemAudio(id);
+        if (audioData.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        PoemService.PoemAudioData audio = audioData.get();
+        MediaType mediaType = audio.contentType() != null
+                ? MediaType.parseMediaType(audio.contentType())
+                : MediaType.APPLICATION_OCTET_STREAM;
+
+        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok()
+                .contentType(mediaType)
+                .contentLength(audio.bytes().length);
+
+        if (audio.fileName() != null && !audio.fileName().isBlank()) {
+            responseBuilder.header("Content-Disposition", ContentDisposition.inline().filename(audio.fileName()).build().toString());
+        }
+
+        return responseBuilder.body(audio.bytes());
+    }
+
+    @DeleteMapping("/{id}/audio")
+    public ResponseEntity<Void> deletePoemAudio(@PathVariable Long id) {
+        if (!poemService.deletePoemAudio(id)) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.noContent().build();

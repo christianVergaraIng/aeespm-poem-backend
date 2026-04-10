@@ -13,8 +13,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode(exclude = {"comments"})
-@ToString(exclude = {"comments"})
+@EqualsAndHashCode(exclude = {"comments", "audioData"})
+@ToString(exclude = {"comments", "audioData"})
 public class Poem {
 
     @Id
@@ -39,6 +39,26 @@ public class Poem {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "audio_data")
+    private byte[] audioData;
+
+    @Column(name = "audio_content_type", length = 100)
+    private String audioContentType;
+
+    @Column(name = "audio_filename", length = 255)
+    private String audioFilename;
+
+    @Column(name = "audio_compression", length = 20)
+    private String audioCompression;
+
+    @Column(name = "audio_original_size")
+    private Integer audioOriginalSize;
+
+    @Column(name = "audio_compressed_size")
+    private Integer audioCompressedSize;
 
     @OneToMany(mappedBy = "poem", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

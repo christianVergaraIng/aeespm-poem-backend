@@ -18,6 +18,12 @@ CREATE TABLE IF NOT EXISTS poems (
     content    TEXT         NOT NULL,
     author     VARCHAR(100) NOT NULL,
     sede       VARCHAR(50)  NOT NULL,
+    audio_data BYTEA,
+    audio_content_type VARCHAR(100),
+    audio_filename VARCHAR(255),
+    audio_compression VARCHAR(20),
+    audio_original_size INTEGER,
+    audio_compressed_size INTEGER,
     created_at TIMESTAMP    NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP    NOT NULL DEFAULT NOW()
 );
